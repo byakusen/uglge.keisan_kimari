@@ -39,6 +39,23 @@
   .tab.on{background:#fff;color:var(--navy);border-color:var(--line);}
   .tab:focus-visible{outline:3px solid var(--navy);outline-offset:-3px;}
 
+  .subtabs{flex:none;display:none;gap:8px;overflow-x:auto;scrollbar-width:none;
+    background:#fff;border:2px solid var(--line);border-bottom:none;border-radius:0 12px 0 0;
+    padding:8px 10px;}
+  .subtabs::-webkit-scrollbar{display:none;}
+  .subtabs.show{display:flex;}
+  .subtab{font-family:var(--font);font-size:clamp(.78rem,1.75vh,.95rem);font-weight:700;
+    color:#5b7a94;background:#eef3f6;border:2px solid var(--line);border-radius:999px;
+    padding:5px 14px;cursor:pointer;white-space:nowrap;transition:.15s;flex:none;}
+  .subtab:hover{border-color:var(--navy);color:var(--navy);}
+  .subtab.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .subtab:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+  /* 「ランダム」の 小タブは オレンジ色 */
+  .subtab.rnd{color:#b8640a;background:#fff4e6;border-color:#f3c48a;}
+  .subtab.rnd:hover{border-color:#e8891c;color:#a35500;}
+  .subtab.rnd.on{background:#e8891c;border-color:#e8891c;color:#fff;}
+  /* 「計算の順番」：テンキーと ヒントは つかわない */
+  .panel.order .keypad,.panel.order .hintbtn{display:none;}
   .panels{flex:1;min-height:0;position:relative;}
   .panel{position:absolute;inset:0;display:none;}
   .panel.on{display:flex;gap:16px;}
@@ -84,6 +101,16 @@
   .hot{position:absolute;z-index:5;cursor:pointer;background:transparent;}
   .marks{position:absolute;left:0;top:0;z-index:4;pointer-events:none;overflow:visible;}
   .marks path{fill:none;stroke:var(--pencil);stroke-linecap:butt;shape-rendering:crispEdges;}
+  .marks path.hatch{stroke:var(--ink);stroke-linecap:round;shape-rendering:geometricPrecision;}
+  .marks path.rule{stroke:var(--ink);}
+  /* 「7−8÷4×2」型：下に 書く ×4（うすい字）と、その 答え */
+  .stk{position:absolute;z-index:4;white-space:nowrap;text-align:center;
+    transform:translateX(-50%);opacity:0;transition:opacity .3s ease;}
+  .stk.show{opacity:1;}
+  .stk::before{content:"\200B";}
+  .stk-x{color:#9aa6b5;}
+  .stk-res{color:var(--pencil);}
+  .stk-res.shake{animation:shakeC .42s;}
   .sub{position:absolute;z-index:4;color:var(--pencil);white-space:nowrap;text-align:center;
     transform:translateX(-50%);opacity:0;transition:opacity .22s ease;}
   .sub.show{opacity:1;}
@@ -145,6 +172,24 @@
   .rand:hover{background:#eef6fc;}
   .rand:active{transform:translateY(3px);box-shadow:none;}
   .rand:focus-visible{outline:3px solid var(--navy);outline-offset:2px;}
+
+  /* ---------- 式の タブ：ヒント（ひっ算）---------- */
+  .side.calc .keypad{flex:0 1 auto;}
+  .side.calc .keys{flex:none;grid-auto-rows:clamp(38px,7.4vh,60px);}
+  .side.calc .rand:not(.hintbtn){margin-top:auto;}
+  .side.calc .hintbtn.on{background:#fff4c2;}
+  .hissan{position:absolute;right:16px;bottom:14px;z-index:6;pointer-events:none;
+    background:rgba(255,253,243,.96);border:3px solid #f0c419;border-radius:16px;
+    padding:12px 18px 12px;opacity:0;transform:translateY(8px);
+    transition:opacity .3s ease,transform .3s ease;}
+  .hissan.show{opacity:1;transform:translateY(0);}
+  .hissan h3{margin:0 0 4px;font-size:clamp(.78rem,1.9vh,.98rem);color:#8a6d00;
+    letter-spacing:.04em;text-align:center;}
+  .hissan svg{display:block;overflow:visible;}
+  .hissan text{font-family:var(--font);fill:var(--ink);}
+  .hissan text.ans{fill:var(--red);}
+  .hissan text.op{fill:var(--navy);}
+  .hissan line,.hissan path{stroke:var(--ink);fill:none;stroke-linecap:round;}
 
   /* ---------- 資料 ---------- */
   .doc-inner{height:100%;background:#fff;border:2px solid var(--line);border-radius:14px;
@@ -335,6 +380,16 @@
   .msheet{white-space:nowrap;}
   .mcols{display:flex;align-items:flex-start;gap:1.5em;}
   .mcol{display:flex;flex-direction:column;}
+  /* 友だちの ノート：1行目は「しき＝…」、2行目からは ＝ を そろえて 書く */
+  .mcols{font-size:1.1em;}
+  .mcol.mleft,.mcol.mright{display:grid;grid-template-columns:auto auto;align-items:baseline;align-content:start;}
+  .mleft .mcap,.mright .mcap{grid-column:1 / -1;}
+  .mleft .mcap{color:var(--red);border-bottom-color:#f0a3a5;}   /* 「まちがえています。」赤い 線 */
+  .mcol.mleft,.mcol.mright{row-gap:.55em;}
+  .mcol .mup{margin-top:-.5em;}          /* 3行目から（＝4 など）少し 上へ */
+  .mwg{display:inline-flex;align-items:baseline;position:relative;border-bottom:.06em solid currentColor;}
+  .mwv{position:absolute;left:50%;top:100%;transform:translateX(-50%);line-height:1.2;padding-top:.05em;}
+  @media (max-width:900px){ .mcols{flex-direction:column;gap:.2em;} }
   .mcap{font-size:.44em;font-weight:700;color:#5b7a94;letter-spacing:.08em;
     border-bottom:2.5px solid var(--line);padding:0 .3em .35em;margin-bottom:.55em;}
   .mright{visibility:hidden;}
@@ -353,6 +408,37 @@
   .msg .nextb{margin-left:10px;background:var(--green);box-shadow:0 3px 0 #17714a;}
   .msg .nextb:active{transform:translateY(3px);box-shadow:none;}
   .mans{margin-top:.9em;align-items:baseline;gap:.4em;opacity:.3;}
+  /* まちがえた 理由（□に ことばを 入れる） */
+  .mriyu{display:none;margin-top:.7em;font-size:.68em;white-space:nowrap;background:#fffbe9;
+    border:.12em solid #f0a13a;border-radius:12px;padding:.6em .9em .8em;}
+  .mriyu.on{display:block;}
+  .mriyu.wait{opacity:.35;}             /* まちがえた 行を 見つけるまでは うすく 出して おく */
+  .mriyu.wait .mword{cursor:default;}
+  .mrlab{font-size:.78em;font-weight:700;color:#a35500;letter-spacing:.06em;margin-bottom:.15em;}
+  .mrline{display:flex;align-items:center;gap:.3em;margin-top:.5em;}
+  .mrbox{display:inline-block;min-width:4.6em;text-align:center;border:.1em solid #b9c8d6;
+    border-radius:9px;background:#fff;padding:.05em .3em;color:var(--red);font-weight:700;}
+  .mrbox::before{content:"\200B";}
+  .mrbox.now{border-color:var(--navy);background:#eaf4fd;}
+  .mrbox.ok{border-color:#a9dfc5;background:#f4fdf8;}
+  .mrbox.ng{animation:shake .42s;}
+  .mrchoice{display:flex;gap:.5em;justify-content:center;margin-top:.6em;
+    border:.08em dashed var(--pink);border-radius:10px;padding:.4em .5em;}
+  .mrchoice.off{visibility:hidden;}      /* 消しても 場所は のこす（文字の 大きさ・位置が かわらない）*/
+  /* PC：ことばの ボタンは 文の 右に 2×2 で おく（たてに のびない ように）*/
+  .mriyu.on{display:grid;grid-template-columns:auto 1fr;column-gap:1.2em;}
+  .mriyu > *{grid-column:1;}
+  .mriyu > .mrchoice{grid-column:2;grid-row:1 / span 4;align-self:center;justify-self:center;
+    display:grid;grid-template-columns:auto auto;gap:.45em .5em;margin-top:0;padding:.5em .7em;}
+  @media (max-width:900px){
+    .mriyu.on{display:block;}
+    .mriyu > .mrchoice{display:flex;margin-top:.6em;padding:.4em .5em;}
+  }
+  .mword{font-family:var(--font);font-size:1em;font-weight:700;color:var(--navy);background:#fff;
+    border:.1em solid var(--line);border-radius:10px;padding:.25em .6em;cursor:pointer;
+    box-shadow:0 2px 0 #dbe5ec;}
+  .mword:hover{border-color:var(--navy);background:#eef6fc;}
+  .mword.ng{animation:shake .42s;border-color:var(--pink);}
   .mans.on{opacity:1;}
   .mlab{flex:none;font-size:.44em;font-weight:700;color:#fff;background:var(--navy);
     border-radius:8px;padding:.4em .85em;position:relative;top:-.3em;}
@@ -390,6 +476,7 @@
   body.testing #test-bar{display:flex;}
   body.testing #chal-mount{display:none;}
   body.testing .tabs{pointer-events:none;opacity:.45;}
+  body.testing .subtabs{pointer-events:none;opacity:.45;}
   #test-result{display:none;position:fixed;left:0;top:0;right:0;bottom:0;
     background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
   #test-result.show{display:flex;}
@@ -442,6 +529,7 @@
   </header>
 
   <nav class="tabs" id="tabs"></nav>
+  <nav class="subtabs" id="subtabs"></nav>
 
   <div class="panels" id="panels">
 
@@ -754,45 +842,76 @@
 
   /* ===== もんだい（src に 半角で式を書くだけで 追加できます）===== */
   function ri(a,b){return a+Math.floor(Math.random()*(b-a+1));}
+  var q1Last=0;                       /* 500−（150＋50）タブで 前に 出した 型（はじめは 500−（150＋50）） */
+  var q2Turn=0;                       /* 50＋13×2タブ：0 … つぎは 600−400÷5 型（はじめは 50＋13×2） */
+  var q3Last=0;                       /* 7−8÷4×2タブで 前に 出した 型（はじめは 7−8÷4×2） */
   var PROBLEMS=[
     {key:'q1', label:'500−（150＋50）', src:'500-(150+50)',
       gen:function(){
-        var t=ri(1,6),a,b,c,d,k,q,val,sum,diff;
-        if(t===1){                          /* ● −（● ＋ ●）  例 700−（350＋50） */
+        /* 3つの 型を 同じ 確率で。前と 同じ 型は 出さない */
+        var t,a,b,c,d,k,q,val,sum,n=0;
+        do{ t=ri(0,2); n++; }while(t===q1Last && n<50);
+        q1Last=t;
+        if(t===0){                          /* ● −（● ＋ ●）  例 500−（150＋50） */
           sum=50*ri(2,8); c=10*ri(1,sum/10-1); b=sum-c; a=sum+50*ri(1,8);
           return a+'-('+b+'+'+c+')';
         }
-        if(t===2){                          /* ● −（● − ●）  例 500−（250−50） */
-          diff=50*ri(1,6); c=10*ri(1,15); b=diff+c; a=diff+50*ri(1,8);
-          return a+'-('+b+'-'+c+')';
+        if(t===1){                          /* （● ＋ ●）÷ ●  例 （106＋94）÷4 */
+          q=10*ri(2,9); d=ri(2,9); val=q*d;
+          c=ri(11,Math.min(99,val-20)); b=val-c;
+          return '('+b+'+'+c+')/'+d;
         }
-        if(t===3){                          /* ● ×（● − ●）  例 54×（72−69） */
-          d=ri(2,9); k=ri(11,Math.min(99,Math.floor(450/d))); c=ri(21,99); b=c+d;
-          return k+'*('+b+'-'+c+')';
-        }
-        if(t===4){                          /* ● ×（● ＋ ●）  例 7×（35＋65） */
-          k=ri(2,9); b=ri(11,89); c=100-b;
-          return k+'*('+b+'+'+c+')';
-        }
-        if(t===5){                          /* （● − ●）÷ ●  例 （196−16）÷3 */
-          q=10*ri(1,9); d=ri(2,9); val=q*d; c=ri(11,99); b=val+c;
-          return '('+b+'-'+c+')/'+d;
-        }
-        q=10*ri(2,9); d=ri(2,9); val=q*d;   /* （● ＋ ●）÷ ●  例 （213＋27）÷8 */
-        c=ri(11,Math.min(99,val-20)); b=val-c;
-        return '('+b+'+'+c+')/'+d;
+        d=ri(2,9); k=ri(11,Math.min(99,Math.floor(450/d))); c=ri(21,99); b=c+d;   /* ● ×（● − ●）  例 54×（72−69） */
+        return k+'*('+b+'-'+c+')';
       }},
     {key:'q2', label:'50＋13×2', src:'50+13*2',
-      gen:function(){                       /* ● ＋ ● × ● */
-        var c=ri(2,9), b=ri(2,Math.min(19,Math.floor(120/c))), a=10*ri(1,9);
+      gen:function(){
+        /* 2つの 型を 交互に 出す */
+        q2Turn=1-q2Turn;
+        if(q2Turn===1){                     /* ● − ● ÷ ●  例 600−400÷5 */
+          var d=ri(2,9), q=10*ri(2,9), bb=q*d, lo=Math.ceil((bb+1)/100);
+          var aa=100*ri(lo,Math.max(lo,10));
+          return aa+'-'+bb+'/'+d;
+        }
+        var c=ri(2,9), b=ri(2,Math.min(19,Math.floor(120/c))), a=10*ri(1,9);   /* ● ＋ ● × ● */
         return a+'+'+b+'*'+c;
       }},
     {key:'q3', label:'7−8÷4×2', src:'7-8/4*2',
-      gen:function(){                       /* ● − ● ÷ ● × ● */
-        var c=ri(2,9), q=ri(2,9), d=ri(2,4), r=q*d, a=r+ri(1,9);
+      gen:function(){
+        /* 4つの 型を 同じ 確率で。前と 同じ 型は 出さない */
+        var t,a,b,c,d,q,k,ds,i,n=0;
+        do{ t=ri(0,3); n++; }while(t===q3Last && n<50);
+        q3Last=t;
+        if(t===3){                          /* ● ×（● − ● ÷ ●）  例 3×（9−4÷2） */
+          a=ri(2,9); d=ri(2,9); q=ri(1,9); c=d*q; b=q+ri(1,9);
+          return a+'*('+b+'-'+c+'/'+d+')';
+        }
+        if(t===1){                          /* ● × ● − ● ÷ ●  例 7×6−4÷2 */
+          a=ri(2,9); b=ri(2,9); d=ri(2,9); q=ri(1,Math.min(9,a*b-1)); c=d*q;
+          return a+'*'+b+'-'+c+'/'+d;
+        }
+        if(t===2){                          /* ● ×（● − ●）÷ ●  例 6×（5−3）÷2 */
+          a=ri(2,9); k=ri(2,9); c=ri(1,9); b=c+k; ds=[];
+          for(i=2;i<=9;i++) if((a*k)%i===0) ds.push(i);
+          d=ds[ri(0,ds.length-1)];
+          return a+'*('+b+'-'+c+')/'+d;
+        }
+        var c=ri(2,9), q=ri(2,9), d=ri(2,4), r=q*d, a=r+ri(1,9);   /* ● − ● ÷ ● × ● */
         return a+'-'+(c*q)+'/'+c+'*'+d;
       }}
   ];
+  /* ランダム … 上の 3しゅるいから 1つを えらんで 出す */
+  var RAND_DEF={key:'q4', label:'ランダム',
+    gen:function(){ return PROBLEMS[ri(0,2)].gen(); }};
+  Object.defineProperty(RAND_DEF,'src',{get:function(){ return RAND_DEF.gen(); }});
+  PROBLEMS.push(RAND_DEF);
+  /* 計算の順番 … 計算は 自動で する。どこから 計算するかだけを 考える */
+  var ORDER_DEF={key:'q5', label:'計算の順番', order:true,
+    gen:function(){ return PROBLEMS[2].gen(); }};   /* 「7−8÷4×2」タブの 問題から 出す */
+  Object.defineProperty(ORDER_DEF,'src',{get:function(){ return ORDER_DEF.gen(); }});
+  PROBLEMS.push(ORDER_DEF);
+  /* 「計算のきまり」タブの 中に まとめる タブ */
+  var KIMARI={label:'計算のきまり', keys:['q1','q2','q3','q4','q5']};
   var DOCS=[
     {key:'think',label:'考え方'},{key:'kufuu',label:'計算のくふう'},{key:'seishitsu',label:'かけ算のせいしつ'},{key:'ritsu',label:'立式'},
     {key:'machigai',label:'まちがい探し'}
@@ -840,6 +959,7 @@
     }
     return s;
   }
+  function at0IsMD(at,i){ return at[i]&&at[i].t==='o'&&(at[i].v==='×'||at[i].v==='÷'); }
   function zoneText(at,z){var r=zone(at,z);return at[r.a].v+' '+at[r.op].v+' '+at[r.b].v;}
   function zoneVal(at,z){var r=zone(at,z);return calc(at[r.a].v,at[r.op].v,at[r.b].v);}
 
@@ -911,13 +1031,15 @@
     this.def=def;
     var el=document.createElement('section');
     el.className='panel';el.setAttribute('data-tab',def.key);
+    if(def.order) el.className+=' order';
     el.innerHTML=
       '<div class="work"><div class="paper"><div class="sheet">'+
         '<svg class="marks"></svg><div class="sub"></div>'+
       '</div><img class="hanamaru" alt=""></div>'+
       '<div class="msg"><span class="badge">もんだい</span><span class="mtext"></span>'+
         '<button class="again">もう一度</button></div></div>'+
-      '<div class="side"><div class="keypad off"><h2>こたえを 入力しよう</h2><div class="keys"></div>'+
+      '<div class="side calc"><button class="rand hintbtn">💡 ヒント</button>'+
+      '<div class="keypad off"><h2>こたえを 入力しよう</h2><div class="keys"></div>'+
       '<p class="kphint">キーボードの 数字・Enter・BackSpace<br>でも 入力できます</p></div>'+
       '<button class="rand">🎲 ランダムもんだい</button></div>';
     this.el=el;
@@ -933,7 +1055,11 @@
     this.againBtn=el.querySelector('.again');
     this.againBtn.addEventListener('click',function(){self.reset(self.src);});
     this.keypad=el.querySelector('.keypad');
-    el.querySelector('.rand').addEventListener('click',function(){
+    this.hissan=document.createElement('div');this.hissan.className='hissan';
+    this.paper.appendChild(this.hissan);
+    this.hintBtn=el.querySelector('.hintbtn');
+    this.hintBtn.addEventListener('click',function(){self.toggleHint();});
+    el.querySelector('.rand:not(.hintbtn)').addEventListener('click',function(){
       self.reset(self.def.gen?self.def.gen():self.def.src);
     });
 
@@ -957,15 +1083,43 @@
     (this.timers||[]).forEach(clearTimeout);
     this.timers=[];
     CH.newProblem();
+    this.seq=(this.seq||0)+1;
     this.src=src||this.def.src;
     this.rows=[];this.marks=[];
-    Array.prototype.slice.call(this.sheet.querySelectorAll('.row,.film,.hot')).forEach(function(e){e.remove();});
+    Array.prototype.slice.call(this.sheet.querySelectorAll('.row,.film,.hot,.stk')).forEach(function(e){e.remove();});
     this.svg.innerHTML='';
     this.sub.className='sub';this.sub.textContent='';this.sub.style.opacity='';
     this.hana.className='hanamaru';
+    if(this.hissan) this.hideHint();
     this.atoms=parse(this.src);
     this.maxRows=ops(this.atoms).length;
     this.buf='';this.chosen=-1;
+    /* ● − ● ÷ ● × ● の 形なら、下に 書きたして 計算する（ふつうの 段は ふやさない） */
+    var at0=this.atoms;
+    function isO(a,set){ return a&&a.t==='o'&&set.indexOf(a.v)>=0; }
+    var PM=['＋','－'],MD=['×','÷'];
+    /*  R … ● − ● ÷ ● × ●      （まん中 → 右と まとめる）
+        P … ● ×（● − ●）÷ ●    （まん中 → 左と まとめる）
+        D … ● × ● − ● ÷ ●      （左右の かたまりを 1つずつ） */
+    this.stk=false;
+    if(at0.length===7&&isO(at0[1],PM)&&isO(at0[3],MD)&&isO(at0[5],MD))
+      this.stk={m:'R',L:0,o1:1,o2:5,R:6};
+    else if(at0.length===7&&isO(at0[1],MD)&&isO(at0[3],PM)&&isO(at0[5],MD))
+      this.stk={m:'D'};
+    else if(at0.length===9&&isO(at0[1],MD)&&at0[2].t==='l'&&isO(at0[4],PM)&&at0[6].t==='r'&&isO(at0[7],MD))
+      this.stk={m:'P',L:0,o1:1,o2:7,R:8};
+    else if(at0.length===9&&isO(at0[1],MD)&&at0[2].t==='l'&&isO(at0[4],PM)&&isO(at0[6],MD)&&at0[8].t==='r')
+      this.stk={m:'N',L:3,o1:4,o2:1,R:0};   /* N … ● ×（● − ● ÷ ●）（まん中 → 左の ● − と まとめる） */
+    this.stkStage=0;this.sg=null;this.stkFilms=null;this.stkHots=null;this.finFilm=null;this.finHot=null;
+    if(this.stk){
+      this.gx=document.createElement('span');this.gx.className='stk stk-x';
+      if(this.stk.m==='R') this.gx.textContent=at0[5].v+at0[6].v;
+      if(this.stk.m==='P') this.gx.textContent=at0[0].v+at0[1].v;
+      if(this.stk.m==='N') this.gx.textContent=at0[3].v+at0[4].v;
+      this.sheet.appendChild(this.gx);
+      this.res=document.createElement('span');this.res.className='stk stk-res';
+      this.sheet.appendChild(this.res);
+    }
     this.addRow(this.atoms,null);
     this.startStep();
     this.layout();
@@ -1025,6 +1179,11 @@
       this.ans.classList.add('active');
       this.renderBuf();
       this.say('あと 少し！　「'+zoneText(at,0)+'」 の 答えを ＝ の あとに 書こう。','good');
+      if(this.def.order){
+        if(this.stk){ this.startChoose3(); return; }   /* さいごの 計算も 自分で えらぶ */
+        this.say('さいごは 「'+zoneText(at,0)+'」。　'+zoneText(at,0)+' ＝ '+zoneVal(at,0),'good');
+        this.autoAns(zoneVal(at,0),700);
+      }
     }
   };
 
@@ -1076,6 +1235,7 @@
         h.style.top=(r.top-lineH*0.09)+'px';h.style.height=(lineH*1.18)+'px';
       }
     }
+    if(this.stk&&this.stkStage>=1) this.layoutStack();
     // 下線
     this.svg.setAttribute('viewBox','0 0 '+W+' '+(totalH+lineH));
     this.svg.style.width=W+'px';this.svg.style.height=(totalH+lineH)+'px';
@@ -1091,10 +1251,27 @@
         x1=g.x+this.lineH*0.06,x2=g.x+g.w-this.lineH*0.06;
     return 'M'+x1+','+y+' L'+x2+','+y;      /* まっすぐな 線 */
   };
+  /* 計算が おわった ところに ひく ななめ線（上 → 下 に ひく） */
+  Panel.prototype.hatchD=function(m){
+    var r=this.rows[m.row],g=m.key?this.sg[m.key]:r.zones[m.z],L=this.lineH,
+        gt=m.key?g.top:r.top,
+        yB=gt+L*0.86, yT=gt+L*0.12, dx=(yB-yT)*0.36,
+        x0=g.x+L*0.28, x1=g.x+g.w-L*0.28-dx, step=L*0.3, d='';
+    var n=Math.max(1,Math.round((x1-x0)/step));
+    for(var i=0;i<=n;i++){
+      var x=x0+(x1-x0)*i/n;
+      d+='M'+(x+dx).toFixed(1)+','+yT.toFixed(1)+' L'+x.toFixed(1)+','+yB.toFixed(1)+' ';
+    }
+    return d;
+  };
   Panel.prototype.drawMark=function(m,anim){
     var p=document.createElementNS('http://www.w3.org/2000/svg','path');
-    p.setAttribute('d',this.markD(m));
-    p.setAttribute('stroke-width',Math.max(2,this.lineH*0.085));
+    if(m.hatch){ p.setAttribute('class','hatch'); p.setAttribute('d',this.hatchD(m)); }
+    else if(m.rule){ var ln=this.sg.line; p.setAttribute('class','rule');
+      p.setAttribute('d','M'+ln.x1+','+ln.y+' L'+ln.x2+','+ln.y); }
+    else p.setAttribute('d',this.markD(m));
+    p.setAttribute('stroke-width',m.hatch?Math.max(1.5,this.lineH*0.04):
+      (m.rule?Math.max(1.5,this.lineH*0.045):Math.max(2,this.lineH*0.085)));
     this.svg.appendChild(p);
     var len=p.getTotalLength();
     if(anim){
@@ -1108,7 +1285,7 @@
   Panel.prototype.placeSub=function(){
     var r=this.rows[this.rows.length-1],g=r.zones[this.chosen];
     this.sub.style.left=g.cx+'px';
-    this.sub.style.top=(r.top+this.rowH)+'px';
+    this.sub.style.top=(r.top+this.lineH*1.12)+'px';
   };
   Panel.prototype.placeHana=function(){
     var pw=this.paper.clientWidth, ph=this.paper.clientHeight;
@@ -1128,9 +1305,18 @@
   Panel.prototype.choose=function(z,film){
     if(this.phase!=='choose') return;
     var row=this.rows[this.rows.length-1],r=zone(row.atoms,z),self=this;
-    if(r.op!==this.correctOp){
+    var okZ=(this.stk&&this.stk.m==='D'&&this.stkStage===0)?
+      (at0IsMD(row.atoms,r.op)):(r.op===this.correctOp);
+    if(!okZ){
       film.classList.add('show','shake');ngBlip();CH.miss();
       var hasParen=row.atoms.some(function(a){return a.t==='l';});
+      var li=-1,rj=-1;
+      row.atoms.forEach(function(a,i){ if(a.t==='l')li=i; if(a.t==='r'&&rj<0)rj=i; });
+      if(hasParen&&r.op>li&&r.op<rj&&this.correctOp>li&&this.correctOp<rj){
+        this.say('そこは あとで 計算するよ。（　）の 中でも、×や÷は ＋や−より 先に 計算するよ。','bad');
+        setTimeout(function(){film.classList.remove('shake');},460);
+        return;
+      }
       this.say('そこは あとで 計算するよ。'+(hasParen?'（　）の 中を 先に 計算しよう。':'×や÷は、＋や−より 先に。同じ なかまは 左から。'),'bad');
       setTimeout(function(){film.classList.remove('shake');},460);
       return;
@@ -1147,7 +1333,17 @@
       last.style.strokeDasharray=len;last.style.strokeDashoffset=len;
       last.getBoundingClientRect();
       last.style.transition='stroke-dashoffset .5s ease-out';last.style.strokeDashoffset=0;}
+    var seq=this.seq;
     setTimeout(function(){
+      if(self.def.order){                       /* 計算の順番：答えは 自動で 書く */
+        if(seq!==self.seq) return;
+        film.classList.remove('locked');
+        self.sub.classList.add('show');self.placeSub();
+        self.say('そのとおり！　「'+zoneText(row.atoms,z)+'」 ＝ '+zoneVal(row.atoms,z),'good');
+        self.autoAns(zoneVal(row.atoms,z));
+        return;
+      }
+      film.classList.remove('locked');          /* 下線を ひいたら 色は けす */
       self.sub.classList.add('show');self.placeSub();self.renderBuf();
       self.keypad.classList.remove('off');
       self.say('そのとおり！　まず 「'+zoneText(row.atoms,z)+'」 は いくつ？','good');
@@ -1164,10 +1360,44 @@
     target.appendChild(c);
   };
   Panel.prototype.renderBuf=function(){
-    this.setText((this.phase==='input')?this.sub:this.ans,this.buf,true);
+    this.setText((this.phase==='input')?this.sub:(this.phase==='input2'?this.res:this.ans),this.buf,true);
+  };
+  /* 計算の順番タブ：答えを 自動で 書いて たしかめる */
+  Panel.prototype.autoAns=function(want,wait){
+    var self=this;
+    this.buf=String(want); this.renderBuf();
+    this.timers.push(setTimeout(function(){ self.check(); },wait||450));
+  };
+  /* 計算の順番タブ：さいごの 計算（例 5−4）を えらぶ */
+  Panel.prototype.startChoose3=function(){
+    var self=this,at=this.atoms;
+    this.phase='choose3';
+    var f=document.createElement('div');f.className='film c2';
+    var h=document.createElement('div');h.className='hot';
+    this.sheet.appendChild(f);this.sheet.appendChild(h);
+    this.finFilm=f;this.finHot=h;
+    h.addEventListener('mouseenter',function(){if(self.phase==='choose3')f.classList.add('show');});
+    h.addEventListener('mouseleave',function(){f.classList.remove('show');});
+    h.addEventListener('touchstart',function(){if(self.phase==='choose3')f.classList.add('show');},{passive:true});
+    h.addEventListener('click',function(){
+      if(self.phase!=='choose3') return;
+      self.phase='wait';
+      f.classList.remove('show');f.classList.add('locked');h.style.display='none';
+      okBlip();
+      var t=zoneText(at,0),v=zoneVal(at,0);
+      self.say('そのとおり！　さいごは 「'+t+'」。　'+t+' ＝ '+v,'good');
+      self.timers.push(setTimeout(function(){
+        f.classList.remove('locked');
+        self.phase='final';
+        self.autoAns(v,450);
+      },600));
+    });
+    this.say('さいごに 計算する ところは どこかな？　えらんでね。','');
+    this.layout();
   };
   Panel.prototype.press=function(k){
-    if(this.phase!=='input'&&this.phase!=='final') return;
+    if(this.def.order) return;
+    if(this.phase!=='input'&&this.phase!=='final'&&this.phase!=='input2') return;
     if(k==='del'){this.buf=this.buf.slice(0,-1);this.renderBuf();return;}
     if(k==='enter'){this.check();return;}
     if(this.buf.length>=5) return;
@@ -1178,10 +1408,12 @@
     if(this.buf==='') return;
     var self=this,val=parseInt(this.buf,10);
     var row=this.rows[this.rows.length-1];
+    if(this.phase==='input2'){ this.checkStack(val); return; }
     if(this.phase==='input'){
       var want=zoneVal(row.atoms,this.chosen);
       if(val===want){
         this.setText(this.sub,String(want),false);okBlip();
+        this.hideHint();
         this.phase='wait';
         setTimeout(function(){self.advance(want);},380);
       }else{
@@ -1194,6 +1426,7 @@
       if(val===want2){
         this.setText(this.ans,String(want2),false);
         this.ans.classList.remove('active');
+        this.hideHint();
         this.phase='done';this.keypad.classList.add('off');
         this.layout();this.placeHana();this.hana.classList.add('show');
         pinponPlay();
@@ -1215,6 +1448,7 @@
 
   /* ---------- 次の 段へ（式は 残したまま）---------- */
   Panel.prototype.advance=function(val){
+    if(this.stk&&this.stkStage===0){ this.stackFirst(val); return; }
     var row=this.rows[this.rows.length-1];
     var r=zone(row.atoms,this.chosen);
     var next=row.atoms.slice();
@@ -1234,9 +1468,360 @@
     }else{
       // 残り 1つ → 式は そのまま、下の 数字も そのまま のこす
       this.setText(this.sub,String(val),false);
+      // 計算した ところに ななめ線を ひいてから、答えの 入力へ
+      var self=this;
+      this.marks.push({row:this.rows.length-1,z:zdone,hatch:true});
+      this.layout();
+      var hp=this.svg.lastChild;
+      if(hp){var hl=hp.getTotalLength();
+        hp.style.strokeDasharray=hl;hp.style.strokeDashoffset=hl;
+        hp.getBoundingClientRect();
+        hp.style.transition='stroke-dashoffset .7s linear';hp.style.strokeDashoffset=0;}
+      this.timers.push(setTimeout(function(){ self.startStep(); self.layout(); },750));
+      return;
     }
     this.startStep();
     this.layout();
+  };
+
+  /* =========================================================
+     💡 ヒント ― いま 計算する ところの ひっ算を 右下に 出す
+     ========================================================= */
+  /* いま 答えを 入れる 計算 {a,op,b}（入力中で なければ null） */
+  Panel.prototype.curCalc=function(){
+    var at,r,K=this.stk;
+    if(this.phase==='input'){
+      at=this.rows[this.rows.length-1].atoms; r=zone(at,this.chosen);
+      return {a:at[r.a].v,op:at[r.op].v,b:at[r.b].v};
+    }
+    if(this.phase==='final'){
+      at=this.atoms; r=zone(at,0);
+      return {a:at[r.a].v,op:at[r.op].v,b:at[r.b].v};
+    }
+    if(this.phase==='input2'){
+      at=this.atoms;
+      if(K.m==='D'){ r=zone(at,2-this.stkZ); return {a:at[r.a].v,op:at[r.op].v,b:at[r.b].v}; }
+      if(this.side==='R') return {a:this.v1,op:at[K.o2].v,b:at[K.R].v};
+      return {a:at[K.L].v,op:at[K.o1].v,b:this.v1};
+    }
+    return null;
+  };
+  Panel.prototype.toggleHint=function(){
+    if(this.hissan.classList.contains('show')){ this.hideHint(); return; }
+    var c=this.curCalc();
+    if(!c){
+      if(this.phase==='choose'||this.phase==='choose2')
+        this.say('まず、どこを 先に 計算するか えらんでね。答えを 入れる ときに ひっ算の ヒントが 見られるよ。','');
+      return;
+    }
+    this.hissan.innerHTML=hissanSVG(c,this.hintUnit());
+    this.hissan.classList.add('show');
+    this.hintBtn.classList.add('on');
+  };
+  Panel.prototype.hideHint=function(){
+    this.hissan.classList.remove('show');
+    if(this.hintBtn) this.hintBtn.classList.remove('on');
+  };
+  Panel.prototype.hintUnit=function(){
+    var ph=this.paper.clientHeight||400;
+    return Math.max(26,Math.min(48,ph*0.08));
+  };
+
+  /* ひっ算の 絵（SVG）を つくる。u は 1マスの 大きさ */
+  function hissanSVG(c,u){
+    var a=c.a,b=c.b,op=c.op,cells=[],lines=[],paths=[],cols,rows;
+    function put(str,endCol,row,cls){          /* 右そろえで 数字を おく */
+      str=String(str);
+      for(var i=0;i<str.length;i++) cells.push({ch:str.charAt(i),col:endCol-(str.length-1-i),row:row,cls:cls||''});
+    }
+    function hline(c1,c2,row){ lines.push({x1:c1*u,x2:(c2+1)*u,y:row*u}); }
+    if(op==='÷'){
+      var D=String(a),d=b,dl=String(d).length,n=D.length,off=dl+1;   /* off … わられる数の 1けためが ある 列 */
+      var i0=0,cur=parseInt(D.charAt(0),10);
+      while(cur<d&&i0<n-1){ i0++; cur=cur*10+parseInt(D.charAt(i0),10); }
+      var Q=Math.floor(a/d);
+      put(Q,off+n-1,0,'ans');                  /* 商 */
+      put(d,dl-1,1);                          /* わる数 */
+      put(D,off+n-1,1);                       /* わられる数 */
+      var row=2,last=null;
+      for(var i=i0;i<n;i++){
+        var q=Math.floor(cur/d);
+        if(q>0||i===i0){
+          put(q*d,off+i,row,'ans'); hline(off+i-String(q*d).length+1,off+i,row+1);
+          row++;
+          var rem=cur-q*d;
+          if(i<n-1){ cur=rem*10+parseInt(D.charAt(i+1),10); last={v:cur,end:off+i+1,row:row}; }
+          else { cur=rem; last={v:rem,end:off+i,row:row}; }
+          put(last.v,last.end,row,'ans'); row++;
+        }else if(i<n-1){
+          /* 商が 0 の けた … つぎの 数字を おろす */
+          cur=cur*10+parseInt(D.charAt(i+1),10);
+          cells=cells.filter(function(cl){ return cl.row!==last.row; });
+          last={v:cur,end:off+i+1,row:last.row};
+          put(last.v,last.end,last.row,'ans');
+        }
+      }
+      cols=off+n; rows=row;
+      /* ）と 上の 線 */
+      var bx=(off-0.35)*u;
+      paths.push('M'+(bx-0.18*u)+','+(1*u+0.02*u)+' Q'+(bx+0.22*u)+','+(1.5*u)+' '+(bx-0.18*u)+','+(2*u-0.02*u));
+      lines.push({x1:bx-0.18*u,x2:cols*u+0.1*u,y:1*u+0.02*u});
+    }else{
+      var top=a,bot=b,sw=false;
+      if(op==='×'&&String(b).length>String(a).length){ top=b; bot=a; sw=true; }
+      var ans=calc(a,op,b);
+      if(op==='×'&&String(bot).length>1){
+        /* かける数が 2けた いじょう … 部分の 積を ならべる */
+        var bs=String(bot),pr=[],k;
+        for(k=0;k<bs.length;k++) pr.push(top*parseInt(bs.charAt(bs.length-1-k),10));
+        /* 記号は 長いほうの 数の すぐ 左の 列。答えや 部分の 積は 記号の 下に 来ても よい */
+        var mw=Math.max(String(top).length,bs.length);
+        cols=Math.max(mw+1,String(ans).length);
+        for(k=0;k<pr.length;k++) cols=Math.max(cols,String(pr[k]).length+k);
+        put(top,cols-1,0); put(bot,cols-1,1); cells.push({ch:op,col:cols-1-mw,row:1,cls:'op'});
+        hline(0,cols-1,2);
+        for(k=0;k<pr.length;k++) put(pr[k],cols-1-k,2+k,'ans');
+        hline(0,cols-1,2+pr.length);
+        put(ans,cols-1,2+pr.length,'ans');
+        rows=3+pr.length;
+      }else{
+        /* 記号は 長いほうの 数の すぐ 左の 列。答えは 記号の 下に 来ても よい */
+        var mw2=Math.max(String(top).length,String(bot).length);
+        cols=Math.max(mw2+1,String(ans).length);
+        put(top,cols-1,0); put(bot,cols-1,1);
+        cells.push({ch:op,col:cols-1-mw2,row:1,cls:'op'});
+        hline(0,cols-1,2);
+        put(ans,cols-1,2,'ans');
+        rows=3;
+      }
+    }
+    var W=cols*u,H=rows*u,sw2=Math.max(1.5,u*0.07),fs=u*0.82,out=[];
+    out.push('<svg width="'+(W+u*0.3)+'" height="'+(H+u*0.1)+'" viewBox="'+(-u*0.15)+' 0 '+(W+u*0.3)+' '+(H+u*0.1)+'">');
+    cells.forEach(function(cl){
+      out.push('<text class="'+cl.cls+'" x="'+((cl.col+0.5)*u)+'" y="'+((cl.row+0.5)*u)+'" font-size="'+fs+
+        '" text-anchor="middle" dominant-baseline="central">'+cl.ch+'</text>');
+    });
+    lines.forEach(function(l){ out.push('<line x1="'+l.x1+'" y1="'+l.y+'" x2="'+l.x2+'" y2="'+l.y+'" stroke-width="'+sw2+'"/>'); });
+    paths.forEach(function(d){ out.push('<path d="'+d+'" stroke-width="'+sw2+'"/>'); });
+    out.push('</svg>');
+    return out.join('');
+  }
+
+  /* =========================================================
+     「7−8÷4×2」型 ― 途中の 答えを 下に 書いて 計算する
+       ① ÷（×）に 下線 → 下に 答え → ななめ線
+       ② 「16−3」か「3×4」を 2行に またがる 長方形で えらぶ
+       ③ 下に まっすぐな 線 → うすい ×4 → その下に 答え
+       ④ 3×4 と 上の ×4 に ななめ線 → ＝の あとに 答え
+     ========================================================= */
+  Panel.prototype.animLast=function(n,dur){
+    var list=this.svg.childNodes;
+    for(var i=list.length-n;i<list.length;i++){
+      var p=list[i]; if(!p) continue;
+      var len=p.getTotalLength();
+      p.style.strokeDasharray=len;p.style.strokeDashoffset=len;
+      p.getBoundingClientRect();
+      p.style.transition='stroke-dashoffset '+dur+'s linear';p.style.strokeDashoffset=0;
+    }
+  };
+  Panel.prototype.layoutStack=function(){
+    var r=this.rows[0],L=this.lineH,T=r.tokEls,left=r.left,K=this.stk;
+    function bx(el){ return {x:left+el.offsetLeft, r:left+el.offsetLeft+el.offsetWidth,
+      cx:left+el.offsetLeft+el.offsetWidth/2}; }
+    var z1=this.stkZ, cx=r.zones[z1].cx, subTop=r.top+L*1.12;
+    this.sub.style.left=cx+'px'; this.sub.style.top=subTop+'px';
+    var sw=this.sub.offsetWidth, subL=cx-sw/2, subR=cx+sw/2;
+    var y1=r.top-L*0.09, y2=subTop+L*1.06, ty2=r.top+L*1.09, sg={};
+    if(K.m==='D'){
+      var z2=2-z1, gz=r.zones[z2];
+      this.res.style.left=gz.cx+'px'; this.res.style.top=subTop+'px';
+      if(z1===0){            /* 左を 先に → 「42−4」（まちがい）と「4÷2」 */
+        var n4=bx(T[4]);
+        sg.F=[{x:subL-L*0.12, r:n4.r+L*0.12, y1:y1, y2:y2, hx1:subL-L*0.12, hx2:n4.cx, ok:false},
+              {x:gz.x, r:gz.x+gz.w, y1:y1, y2:ty2, hx1:n4.cx, hx2:gz.x+gz.w+L*0.3, ok:true}];
+      }else{                 /* 右を 先に → 「7×6」と「6−2」（まちがい） */
+        var n6=bx(T[2]);
+        sg.F=[{x:gz.x, r:gz.x+gz.w, y1:y1, y2:ty2, hx1:gz.x-L*0.3, hx2:n6.cx, ok:true},
+              {x:n6.x-L*0.12, r:subR+L*0.12, y1:y1, y2:y2, hx1:n6.cx, hx2:subR+L*0.12, ok:false}];
+      }
+    }else{
+      var nL=bx(T[K.L]), o1=bx(T[K.o1]), o2=bx(T[K.o2]), nR=bx(T[K.R]);
+      var gcx=(this.side==='R')?(o2.x+nR.r)/2:(nL.x+o1.r)/2;
+      this.gx.style.left=gcx+'px'; this.gx.style.top=subTop+'px';
+      var gw=this.gx.offsetWidth, gL=gcx-gw/2, gR=gcx+gw/2, ln, bot, top4;
+      if(this.side==='R'){
+        var rr=Math.max(nR.r,gR);
+        ln={x1:subL-L*0.3, x2:rr+L*0.2};
+        bot={x:subL-L*0.1, w:(rr+L*0.1)-(subL-L*0.1)};
+        top4={x:o2.x-L*0.1, w:(nR.r+L*0.1)-(o2.x-L*0.1)};
+      }else{
+        var ll=Math.min(nL.x,gL);
+        ln={x1:ll-L*0.2, x2:subR+L*0.3};
+        bot={x:ll-L*0.1, w:(subR+L*0.1)-(ll-L*0.1)};
+        top4={x:nL.x-L*0.1, w:(o1.r+L*0.1)-(nL.x-L*0.1)};
+      }
+      ln.y=Math.round(subTop+L*1.12)+.5;
+      bot.top=subTop; top4.top=r.top;
+      this.res.style.left=((ln.x1+ln.x2)/2)+'px'; this.res.style.top=(ln.y+L*0.04)+'px';
+      sg.line=ln; sg.line2h=bot; sg.top4=top4;
+      sg.F=[{x:nL.x-L*0.12, r:subR+L*0.12, y1:y1, y2:y2, hx1:nL.x-L*0.12, hx2:cx, ok:this.side==='L'},
+            {x:subL-L*0.12, r:nR.r+L*0.12, y1:y1, y2:y2, hx1:cx, hx2:nR.r+L*0.12, ok:this.side==='R'}];
+      if(K.m==='N'){         /* 「9×8」（まちがい）と「8−2」 */
+        var nA=bx(T[0]);
+        sg.F=[{x:nA.x-L*0.12, r:nL.r+L*0.12, y1:y1, y2:ty2, hx1:nA.x-L*0.3, hx2:nL.cx, ok:false},
+              {x:nL.x-L*0.12, r:subR+L*0.12, y1:y1, y2:y2, hx1:nL.cx, hx2:subR+L*0.3, ok:true}];
+      }
+    }
+    this.sg=sg;
+    if(this.finFilm){        /* さいごの 計算（上の 段の 数・記号 と 下に 書いた 答え）を かこむ */
+      var tops,bots,fx1=1e9,fx2=-1e9,fy2=0;
+      if(K.m==='R'){ tops=[T[K.L],T[K.o1]]; bots=[this.res]; }
+      else if(K.m==='D'){ tops=[T[3]]; bots=[this.sub,this.res]; }
+      else if(K.m==='P'){ tops=[T[K.o2],T[K.R]]; bots=[this.res]; }
+      else { tops=[T[0],T[1]]; bots=[this.res]; }
+      tops.forEach(function(el){
+        fx1=Math.min(fx1,left+el.offsetLeft); fx2=Math.max(fx2,left+el.offsetLeft+el.offsetWidth);
+      });
+      bots.forEach(function(el){
+        var w=el.offsetWidth,l=el.offsetLeft-w/2;
+        fx1=Math.min(fx1,l); fx2=Math.max(fx2,l+w); fy2=Math.max(fy2,el.offsetTop+el.offsetHeight);
+      });
+      fx1-=L*0.12; fx2+=L*0.12; fy2+=L*0.06;
+      [this.finFilm,this.finHot].forEach(function(e){
+        e.style.left=fx1+'px'; e.style.width=(fx2-fx1)+'px';
+        e.style.top=y1+'px'; e.style.height=(fy2-y1)+'px';
+      });
+    }
+    if(this.stkFilms){
+      for(var i=0;i<2;i++){
+        var f=this.stkFilms[i],h=this.stkHots[i],g=sg.F[i];
+        f.style.left=g.x+'px';f.style.width=(g.r-g.x)+'px';
+        f.style.top=g.y1+'px';f.style.height=(g.y2-g.y1)+'px';
+        h.style.left=g.hx1+'px';h.style.width=Math.max(16,g.hx2-g.hx1)+'px';
+        h.style.top=y1+'px';h.style.height=(y2-y1)+'px';
+      }
+    }
+  };
+  /* ① の 答えが 入ったら ななめ線 → ② へ */
+  Panel.prototype.stackFirst=function(val){
+    var self=this,at=this.atoms;
+    this.v1=val;this.stkZ=this.chosen;
+    /* R は 右と、P は 左と まとめる（×÷ だけなら 左から） */
+    this.side=(this.stk.m==='P'||this.stk.m==='N')?'L':'R';
+    this.setText(this.sub,String(val),false);
+    this.marks.push({row:0,z:this.chosen,hatch:true});
+    this.chosen=-1;this.stkStage=1;
+    this.layout();
+    this.animLast(1,.7);
+    this.timers.push(setTimeout(function(){ self.startChoose2(); },750));
+  };
+  /* ② で えらぶ 2つの しき（ことば用） */
+  Panel.prototype.choiceText=function(){
+    var at=this.atoms,K=this.stk,v=this.v1;
+    if(K.m==='D'){
+      return this.stkZ===0?[v+at[3].v+at[4].v, at[4].v+at[5].v+at[6].v]
+                          :[at[0].v+at[1].v+at[2].v, at[2].v+at[3].v+v];
+    }
+    if(K.m==='N') return [at[0].v+at[1].v+at[3].v, at[K.L].v+at[K.o1].v+v];
+    return [at[K.L].v+at[K.o1].v+v, v+at[K.o2].v+at[K.R].v];
+  };
+  Panel.prototype.startChoose2=function(){
+    var self=this;
+    this.phase='choose2';
+    this.keypad.classList.add('off');
+    this.stkFilms=[];this.stkHots=[];
+    for(var i=0;i<2;i++){
+      var f=document.createElement('div');f.className='film c'+i;
+      this.sheet.appendChild(f);this.stkFilms.push(f);
+      var h=document.createElement('div');h.className='hot';
+      this.sheet.appendChild(h);this.stkHots.push(h);
+      (function(zi,fe,he){
+        he.addEventListener('mouseenter',function(){if(self.phase==='choose2')fe.classList.add('show');});
+        he.addEventListener('mouseleave',function(){fe.classList.remove('show');});
+        he.addEventListener('touchstart',function(){if(self.phase==='choose2')fe.classList.add('show');},{passive:true});
+        he.addEventListener('click',function(){self.choose2(zi,fe);});
+      })(i,f,h);
+    }
+    this.layout();
+    var ct=this.choiceText();
+    this.say('つぎは 「'+ct[0]+'」と 「'+ct[1]+'」の どちらを 先に 計算するかな？','');
+  };
+  Panel.prototype.choose2=function(i,film){
+    if(this.phase!=='choose2') return;
+    var self=this,K=this.stk,ct=this.choiceText();
+    if(!this.sg.F[i].ok){
+      film.classList.add('show','shake');ngBlip();CH.miss();
+      this.say(K.m==='N'?'そこは あとで 計算するよ。（　）の 中を 先に 計算しよう。':
+        K.m==='P'?'そこは あとで 計算するよ。×と÷だけの ところは、左から じゅんに。':
+        'そこは あとで 計算するよ。×や÷は、＋や−より 先に。','bad');
+      setTimeout(function(){film.classList.remove('shake');},460);
+      return;
+    }
+    this.phase='wait';this.ct2=ct[i];
+    this.stkFilms.forEach(function(f){f.classList.remove('show');});
+    film.classList.add('locked');
+    this.stkHots.forEach(function(h){h.style.display='none';});
+    okBlip();
+    if(K.m==='D'){
+      /* のこりの かたまりに 下線 → その下に 答え */
+      this.marks.push({row:0,z:2-this.stkZ});
+      this.layout();
+      this.animLast(1,.5);
+      this.timers.push(setTimeout(function(){ film.classList.remove('locked'); },520));
+    }else{
+      this.marks.push({rule:true});
+      this.layout();
+      this.animLast(1,.5);
+      this.timers.push(setTimeout(function(){
+        film.classList.remove('locked');          /* 線を ひいたら 色は けす */
+        self.gx.classList.add('show');             /* うすい 字を 真下に */
+      },520));
+    }
+    this.timers.push(setTimeout(function(){
+      self.phase='input2';self.buf='';
+      self.res.classList.add('show');self.renderBuf();
+      self.keypad.classList.remove('off');
+      self.say('そのとおり！　「'+self.ct2+'」 は いくつ？','good');
+      if(self.def.order){
+        var at=self.atoms, w=(K.m==='D')?zoneVal(at,2-self.stkZ):
+          (self.side==='R')?calc(self.v1,at[K.o2].v,at[K.R].v):calc(at[K.L].v,at[K.o1].v,self.v1);
+        self.say('そのとおり！　「'+self.ct2+'」 ＝ '+w,'good');
+        self.autoAns(w);
+      }
+    },K.m==='D'?520:900));
+  };
+  /* ③ の 答え */
+  Panel.prototype.checkStack=function(val){
+    var self=this,at=this.atoms,K=this.stk,want;
+    if(K.m==='D') want=zoneVal(at,2-this.stkZ);
+    else if(this.side==='R') want=calc(this.v1,at[K.o2].v,at[K.R].v);
+    else want=calc(at[K.L].v,at[K.o1].v,this.v1);
+    if(val!==want){
+      ngBlip();CH.miss();this.res.classList.add('shake');
+      this.say('おしいね。もう一度 「'+this.ct2+'」 を 計算してみよう。','bad');
+      setTimeout(function(){self.res.classList.remove('shake');self.buf='';self.renderBuf();},460);
+      return;
+    }
+    this.setText(this.res,String(want),false);okBlip();
+    this.hideHint();
+    this.phase='wait';this.stkStage=2;
+    var nw={t:'n',v:want,pc:true},n1={t:'n',v:this.v1,pc:true};
+    if(K.m==='D'){
+      this.marks.push({row:0,z:2-this.stkZ,hatch:true});
+      this.layout();
+      this.animLast(1,.6);
+      var fin=(this.stkZ===0)?[n1,at[3],nw]:[nw,at[3],n1];   /* のこりは 42−2 */
+    }else{
+      this.marks.push({key:'line2h',hatch:true},{key:'top4',hatch:true});
+      this.layout();
+      this.animLast(2,.6);
+      var fin=(K.m==='N')?[at[0],at[1],nw]:   /* のこりは 9×6 */
+        (this.side==='R')?[at[K.L],at[K.o1],nw]:[nw,at[K.o2],at[K.R]];
+    }
+    this.timers.push(setTimeout(function(){
+      self.atoms=fin;
+      self.startStep();
+    },700));
   };
 
   /* =========================================================
@@ -2643,21 +3228,24 @@
      行は 文字列か、[{s:'…'},{s:'…',u:1}] の 形（u:1 が ヒントの 赤い下線）
      ========================================================= */
   function machiGen(){
-    var W=[0,0,0,1,1,1,2,2,2,3,3,3,4,4,4,5,5,6,6], t=W[ri(0,W.length-1)];
+    var W=[0,1,7,8],   /* 前が ＋か －、後ろが ×か ÷ の しきだけ（どれも 理由の 枠つき）*/
+        t=W[ri(0,W.length-1)];
     var a,b,c,q,n;
     if(t===0){                       /* ●＋●×● を 前から 計算した */
       c=ri(2,9); b=ri(11,19); a=10*ri(1,9);
       return {head:a+'＋'+b+'×'+c, ans:a+b*c, first:b+'×'+c, bad:1,
-        L:[[{s:a+'＋'},{s:b+'×'+c,u:1}], '＝'+(a+b)+'×'+c, '＝'+((a+b)*c)],
-        F:[a+'＋'+b+'×'+c, '＝'+a+'＋'+(b*c), '＝'+(a+b*c)],
-        why:'＋と ×の ある しきは、×を 先に 計算するよ。'};
+        L:[[{s:a+'＋',wg:a+b},{s:''+b,u:1,wg:a+b},{s:'×'+c,u:1}], '＝'+(a+b)+'×'+c, '＝'+((a+b)*c)],
+        F:[[{s:a+'＋'},{s:b+'×'+c,wg:b*c}], '＝'+a+'＋'+(b*c), '＝'+(a+b*c)],
+        why:'＋と ×の ある しきは、×を 先に 計算するよ。',
+        riyu:{lead:'たし算と かけ算の まじった 式では、',a:'かけ算',b:'たし算'}};
     }
     if(t===1){                       /* ●－●×● を 前から 計算した */
       c=ri(2,5); b=ri(11,25); a=b*c+10*ri(1,9);
       return {head:a+'－'+b+'×'+c, ans:a-b*c, first:b+'×'+c, bad:1,
-        L:[[{s:a+'－'},{s:b+'×'+c,u:1}], '＝'+(a-b)+'×'+c, '＝'+((a-b)*c)],
-        F:[a+'－'+b+'×'+c, '＝'+a+'－'+(b*c), '＝'+(a-b*c)],
-        why:'－と ×の ある しきは、×を 先に 計算するよ。'};
+        L:[[{s:a+'－',wg:a-b},{s:''+b,u:1,wg:a-b},{s:'×'+c,u:1}], '＝'+(a-b)+'×'+c, '＝'+((a-b)*c)],
+        F:[[{s:a+'－'},{s:b+'×'+c,wg:b*c}], '＝'+a+'－'+(b*c), '＝'+(a-b*c)],
+        why:'－と ×の ある しきは、×を 先に 計算するよ。',
+        riyu:{lead:'ひき算と かけ算の まじった 式では、',a:'かけ算',b:'ひき算'}};
     }
     if(t===2){                       /* ●－（●＋●）の（　）を 先に しなかった */
       b=10*ri(2,8); c=10*ri(1,8); a=b+c+10*ri(1,9);
@@ -2680,6 +3268,22 @@
         L:[[{s:a+'÷'+b,u:1},{s:'×'+c}], '＝'+a+'÷'+(b*c), '＝'+q],
         F:[a+'÷'+b+'×'+c, '＝'+(a/b)+'×'+c, '＝'+((a/b)*c)],
         why:'×と ÷だけの しきは、左から じゅんに 計算するよ。'};
+    }
+    if(t===7){                       /* ●－●÷● を 前から 計算した  例 60－20÷4 */
+      do{ c=ri(2,9); q=ri(2,9); b=c*q; n=ri(1,9); a=b+c*n; }while(n===a-q);
+      return {head:a+'－'+b+'÷'+c, ans:a-q, first:b+'÷'+c, bad:1,
+        L:[[{s:a+'－',wg:a-b},{s:''+b,u:1,wg:a-b},{s:'÷'+c,u:1}], '＝'+(a-b)+'÷'+c, '＝'+n],
+        F:[[{s:a+'－'},{s:b+'÷'+c,wg:q}], '＝'+a+'－'+q, '＝'+(a-q)],
+        why:'－と ÷の ある しきは、÷を 先に 計算するよ。',
+        riyu:{lead:'ひき算と わり算の まじった 式では、',a:'わり算',b:'ひき算'}};
+    }
+    if(t===8){                       /* ●＋●÷● を 前から 計算した  例 24＋18÷6 */
+      c=ri(2,9); q=ri(2,9); b=c*q; n=ri(2,9); a=c*n;
+      return {head:a+'＋'+b+'÷'+c, ans:a+q, first:b+'÷'+c, bad:1,
+        L:[[{s:a+'＋',wg:a+b},{s:''+b,u:1,wg:a+b},{s:'÷'+c,u:1}], '＝'+(a+b)+'÷'+c, '＝'+(n+q)],
+        F:[[{s:a+'＋'},{s:b+'÷'+c,wg:q}], '＝'+a+'＋'+q, '＝'+(a+q)],
+        why:'＋と ÷の ある しきは、÷を 先に 計算するよ。',
+        riyu:{lead:'たし算と わり算の まじった 式では、',a:'わり算',b:'たし算'}};
     }
     if(t===5){                       /* （●＋●）×● で 片方だけ かけた */
       a=10*ri(1,9); b=ri(2,9); c=ri(2,9);
@@ -2704,6 +3308,10 @@
     el.innerHTML=
       '<div class="work"><div class="paper"><div class="ksheet msheet">'+
       '<div class="mcols"><div class="mcol mleft"></div><div class="mcol mright"></div></div>'+
+      '<div class="mriyu"><div class="mrlab">まちがえた 理由</div><div class="mrlead"></div>'+
+      '<div class="mrline"><span class="mrbox"></span><span>を 先に 計算しないと いけないのに、</span></div>'+
+      '<div class="mrline"><span class="mrbox"></span><span>を 先に 計算して いるからです。</span></div>'+
+      '<div class="mrchoice"></div></div>'+
       '<div class="kline mans"><span class="mlab">こたえ</span>'+
       '<span class="mlead">正しく 計算すると</span><span class="kblank mbox"></span></div>'+
       '</div></div>'+
@@ -2721,6 +3329,16 @@
     this.rightEl=el.querySelector('.mright');
     this.ansLine=el.querySelector('.mans');
     this.boxEl=el.querySelector('.mbox');
+    this.riyuEl=el.querySelector('.mriyu');
+    this.rleadEl=el.querySelector('.mrlead');
+    this.rboxes=el.querySelectorAll('.mrbox');
+    this.rchoice=el.querySelector('.mrchoice');
+    ['たし算','ひき算','かけ算','わり算'].forEach(function(w){
+      var b=document.createElement('button');
+      b.type='button'; b.className='mword'; b.textContent=w;
+      b.addEventListener('click',function(){self.pickWord(w,b);});
+      self.rchoice.appendChild(b);
+    });
     this.msg=el.querySelector('.msg');
     this.badge=el.querySelector('.badge');
     this.mtext=el.querySelector('.mtext');
@@ -2750,10 +3368,18 @@
   MPanel.prototype.row=function(parent,row,cls){
     var self=this;
     var d=document.createElement('div'); d.className='kline'+(cls?' '+cls:'');
-    var parts=(typeof row==='string')?[{s:row}]:row;
+    var parts=(typeof row==='string')?[{s:row}]:row, wrap=null;
     parts.forEach(function(p){
       var g=document.createElement('span'); g.className='kseg'+(p.u?' mu':'');
-      self.text(g,String(p.s)); d.appendChild(g);
+      self.text(g,String(p.s));
+      if(p.wg!==undefined){                   /* 先に 計算した ところ：下線を ひいて 下に 答え */
+        if(!wrap){
+          wrap=document.createElement('span'); wrap.className='mwg';
+          var v=document.createElement('span'); v.className='mwv'; v.textContent=String(p.wg);
+          wrap.appendChild(v); d.appendChild(wrap);
+        }
+        wrap.insertBefore(g,wrap.lastChild);
+      }else{ wrap=null; d.appendChild(g); }
     });
     parent.appendChild(d);
     return d;
@@ -2766,23 +3392,38 @@
     this.prob=prob||machiGen();
     this.stage='find'; this.buf=''; this.done=false;
     var P=this.prob;
-    this.leftEl.innerHTML='<div class="mcap">友だちの ノート</div>';
+    this.leftEl.innerHTML='<div class="mcap">まちがえています。</div>';
     this.rightEl.innerHTML='<div class="mcap">ただしい ときかた</div>';
     this.rows=[];
     P.L.forEach(function(r,i){
       var d=self.row(self.leftEl,r,'mrow'+(i>0?' pick':''));
-      var x=document.createElement('span'); x.className='mx'; x.textContent='✗';
-      d.appendChild(x);                       /* 場所だけ 先に とっておく */
+      d.style.gridColumn=(i===0)?'1':'2';     /* 1行目の しきの 右に ＝ を つづける */
+      d.style.gridRow=String(i===0?2:i+1);
+      if(i>=2) d.classList.add('mup');
+      if(i>0){
+        var x=document.createElement('span'); x.className='mx'; x.textContent='✗';
+        d.appendChild(x);                     /* 場所だけ 先に とっておく */
+      }
       d.addEventListener('click',function(){self.pick(i,d);});
       self.rows.push(d);
     });
     this.fixRows=[];
     P.F.forEach(function(r,i){
       /* さいごの 行（こたえ）だけは、こたえを 書くまで かくして おく */
-      self.fixRows.push(self.row(self.rightEl,r,'mfix'+(i===P.F.length-1?' mhide':'')));
+      var d=self.row(self.rightEl,r,'mfix'+(i===P.F.length-1?' mhide':''));
+      d.style.gridColumn=(i===0)?'1':'2';     /* 友だちの ノートと 同じ 書き方 */
+      d.style.gridRow=String(i===0?2:i+1);
+      if(i>=2) d.classList.add('mup');
+      self.fixRows.push(d);
     });
     this.rightEl.classList.remove('on');
     this.ansLine.classList.remove('on');
+    this.riyuEl.classList.remove('on','wait');
+    if(P.riyu) this.riyuEl.classList.add('on','wait');   /* はじめから 出して おく */
+    this.rchoice.classList.remove('off');
+    this.rleadEl.textContent=P.riyu?P.riyu.lead:'';
+    for(var j=0;j<this.rboxes.length;j++){ this.rboxes[j].className='mrbox'; this.rboxes[j].textContent=''; }
+    this.ri=0;
     this.waitNext=false;
     this.nextBtn.classList.remove('on');
     this.boxEl.className='kblank mbox';
@@ -2815,13 +3456,15 @@
       okBlip();
       d.classList.remove('pick'); d.classList.add('bad');
       this.rows.forEach(function(r){r.classList.remove('pick');});
-      this.stage='ans';
-      this.rightEl.classList.add('on');      /* ただしい ときかたを 見せる */
-      this.ansLine.classList.add('on');
-      this.keypad.classList.remove('off');
-      this.render();
-      this.say('そこだね！　'+this.prob.why+'　右の ときかたを 見て、こたえを 出そう。','good');
-      this.layout();
+      if(this.prob.riyu){                    /* まちがえた 理由を ことばで 書く */
+        this.stage='riyu'; this.ri=0;
+        this.riyuEl.classList.add('on'); this.riyuEl.classList.remove('wait');
+        this.rboxes[0].classList.add('now');
+        this.say('そこだね！　まちがえた 理由を、下の ことばから えらんで 書こう。','good');
+        this.layout();
+        return;
+      }
+      this.startAns('そこだね！　');
     }else{
       CH.miss();
       ngBlip(); d.classList.add('ng');
@@ -2830,10 +3473,46 @@
     }
   };
 
+  /* ---------- 正しい こたえを 出す 場面へ ---------- */
+  MPanel.prototype.startAns=function(head){
+    this.stage='ans';
+    this.rightEl.classList.add('on');      /* ただしい ときかたを 見せる */
+    this.ansLine.classList.add('on');
+    this.keypad.classList.remove('off');
+    this.render();
+    this.say(head+this.prob.why+'　右の ときかたを 見て、こたえを 出そう。','good');
+    this.layout();
+  };
+
+  /* ---------- まちがえた 理由の □に ことばを 入れる ---------- */
+  MPanel.prototype.pickWord=function(w,btn){
+    if(this.stage!=='riyu') return;
+    var R=this.prob.riyu, want=(this.ri===0)?R.a:R.b, box=this.rboxes[this.ri];
+    if(w===want){
+      box.textContent=w;
+      box.classList.remove('now'); box.classList.add('ok');
+      okBlip();
+      this.ri++;
+      if(this.ri>=2){
+        this.rchoice.classList.add('off');
+        this.startAns('そのとおり！　');
+      }else{
+        this.rboxes[1].classList.add('now');
+        this.say('いいね！　つぎは、友だちが 先に 計算して いるのは 何算かな？','good');
+      }
+    }else{
+      CH.miss();
+      ngBlip(); btn.classList.add('ng'); box.classList.add('ng');
+      this.say(this.ri===0?'もう一度 考えよう。この しきでは、どの 計算を 先に するのが きまりかな？'
+                          :'✗の 行を 見て みよう。友だちは さいしょに 何算を して いるかな？','bad');
+      setTimeout(function(){btn.classList.remove('ng');box.classList.remove('ng');},460);
+    }
+  };
+
   /* ---------- こたえを 書く ---------- */
   MPanel.prototype.render=function(){
     this.boxEl.innerHTML='';
-    if(this.stage==='find') return;
+    if(this.stage==='find'||this.stage==='riyu') return;
     this.boxEl.appendChild(document.createTextNode(this.buf));
     if(!this.done){
       var c=document.createElement('span'); c.className='caret'; this.boxEl.appendChild(c);
@@ -2882,6 +3561,9 @@
       var l=this.leftEl.querySelectorAll('.mu'),i;
       for(i=0;i<l.length;i++) l[i].classList.add('on');
       this.say('赤い 線の ところに 気を つけて、上から 1行ずつ たしかめて みよう。','good');
+    }else if(this.stage==='riyu'){
+      if(this.ri===0) this.say(this.prob.why,'good');
+      else this.say('✗の 行を 見て みよう。友だちは さいしょに 何算を して いるかな？','good');
     }else{
       this.say('まず 「'+this.prob.first+'」 から 計算しよう。','good');
     }
@@ -2947,8 +3629,25 @@
   panelsEl.appendChild(mp.el);
   panels['machigai']=mp;
   panels['think']=ZU;
+  /* いちばん 左に「計算のきまり」タブ。中に 小タブ（q1〜q4）を ならべる */
+  var subtabsEl=document.getElementById('subtabs');
+  var kimariBtn=document.createElement('button');
+  kimariBtn.className='tab';kimariBtn.textContent=KIMARI.label;
+  var kimariLast=KIMARI.keys[0];
+  kimariBtn.addEventListener('click',function(){show(kimariLast);});
+  tabsEl.appendChild(kimariBtn);
   PROBLEMS.map(function(d){return {key:d.key,label:d.label};})
-    .concat(DOCS.map(function(d){return {key:d.key,label:d.label};}))
+    .forEach(function(t){
+      var b=document.createElement('button');
+      b.className='subtab';b.textContent=t.label;
+      if(t.key==='q4') b.className+=' rnd';
+      b.addEventListener('click',function(){
+        show(t.key);
+        panels[t.key].nextProblem();      /* 小タブを おすたびに 新しい 問題を 出す */
+      });
+      subtabsEl.appendChild(b);tabBtns[t.key]=b;order.push(t.key);
+    });
+  DOCS.map(function(d){return {key:d.key,label:d.label};})
     .forEach(function(t){
       var b=document.createElement('button');
       b.className='tab';b.textContent=t.label;
@@ -2960,6 +3659,10 @@
   function show(key){
     current=key;
     if(CH.isOn()) CH.reset();          /* タブを かえたら 10問チャレンジは 数えなおす */
+    var inKimari=KIMARI.keys.indexOf(key)>=0;
+    if(inKimari) kimariLast=key;
+    kimariBtn.classList.toggle('on',inKimari);
+    subtabsEl.classList.toggle('show',inKimari);
     order.forEach(function(k){
       tabBtns[k].classList.toggle('on',k===key);
       var el=document.querySelector('.panel[data-tab="'+k+'"]');
