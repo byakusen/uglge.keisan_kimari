@@ -354,6 +354,17 @@
   .rexp.ng,.rbox.ng{animation:shake .42s;}
   .rch{padding:0 .02em;}
   .rch.ul{border-bottom:.09em solid var(--red);}
+  /* 立式：ヒント（先に 計算した 答えと、のこりの ひっ算） */
+  .rshiki{position:relative;}
+  .rval{position:absolute;top:100%;transform:translateX(-50%);font-size:.62em;line-height:1.2;
+    color:var(--red);font-weight:700;white-space:nowrap;}
+  .rhissan{position:absolute;z-index:4;pointer-events:none;background:#fff;
+    border:2px solid #e0362c;border-radius:12px;padding:.3em .6em;}
+  .rhissan svg{display:block;overflow:visible;}
+  .rhissan text{font-family:var(--font);fill:var(--ink);}
+  .rhissan text.op{fill:var(--navy);}
+  .rhissan text.ans{visibility:hidden;}
+  .rhissan line,.rhissan path{stroke:var(--ink);fill:none;stroke-linecap:round;}
   .rbox{display:inline-block;min-width:3.2em;text-align:center;
     border-bottom:2.5px solid #b9c8d6;padding:0 .18em .08em;}
   .runit{flex:none;font-size:.55em;color:var(--ink);}
@@ -1827,9 +1838,47 @@
   /* =========================================================
      計算のくふうタブ ― □に あてはまる数を 入れる
      ========================================================= */
-  function kufuuGen(){
+  function kufuuGen(mode){
+    /* 小タブ　k1 … 99×5（3回に 2回は （100－●））
+               k2 … 40×25×4（3回に 2回は 25×4・4×25 で 100）
+               k4 … 37＋18＋2
+               k3 … ランダム（k1：k2：k4 ＝ 2：2：1） */
+    /*         k5 … 6×18（入れかえ）　k6 … （30－4）×7
+               k3 は k5・k4・k2・k6・k1 を 同じ 確率で */
+    if(mode==='k3') mode=['k5','k4','k2','k6','k1'][ri(0,4)];
+    if(mode==='k5'){                             /* ●×●＝●×● 入れかえ */
+      var a5=ri(2,9), b5=ri(11,29);
+      return {t:5,a:a5,b:b5,ans:a5*b5,head:a5+'×'+b5,
+        okMsg:a5+'×'+b5+'＝'+b5+'×'+a5,
+        hint:'かける じゅんじょを 入れかえても、答えは 同じ。',
+        lines:[
+          {eq:0,p:[a5+'×'+b5+'＝'+b5+'×',{b:a5,h:'swp'}]}
+        ]};
+    }
+    if(mode==='k4'){                             /* ●＋●＋●＝●＋（●＋●） */
+      var s4=10*ri(3,9), c4=ri(1,9), b4=s4-c4, a4=ri(21,79);
+      return {t:4,a:a4,b:b4,c:c4,s:s4,ans:a4+s4,head:a4+'＋'+b4+'＋'+c4,
+        okMsg:a4+'＋'+b4+'＋'+c4+'＝'+a4+'＋（'+b4+'＋'+c4+'）',
+        hint:'たす じゅんじょを かえても、答えは 同じ。（　）の中は '+b4+'＋いくつ かな？',
+        lines:[
+          {eq:0,p:[a4+'＋'+b4+'＋'+c4+'＝'+a4+'＋（'+b4+'＋',{b:c4,h:'grp'},'）']}
+        ]};
+    }
+    if(mode==='k6'){                             /* （●－●）×●＝●×●－●×● */
+      var n6=10*ri(2,9), a6=ri(1,9), b6=ri(2,9);
+      return {t:6,n:n6,a:a6,b:b6,ans:(n6-a6)*b6,head:'（'+n6+'－'+a6+'）×'+b6,
+        okMsg:'（'+n6+'－'+a6+'）×'+b6+'＝'+n6+'×'+b6+'－'+a6+'×'+b6,
+        hint:'×'+b6+' は、（　）の中の '+n6+'にも '+a6+'にも かかるよ。',
+        lines:[
+          {eq:0,p:['（',{s:''+n6,id:'X0'},'－',{s:''+a6,id:'X1'},'）',{s:'×'+b6,id:'XM'},
+                   '＝'+n6+'×'+b6+'－'+a6+'×',{b:b6,h:'dist'}]}
+        ]};
+    }
     /* （100－●）×● を 多めに 出す */
     var WT=[0,0,0,0,0,1,1,1,2,2,3,3,4,4], t=WT[ri(0,WT.length-1)];
+    if(mode==='k1') t=(ri(0,2)<2)?0:1;
+    if(mode==='k2') t=ri(2,3);
+    if(mode==='k4') t=4;
     var a,b,c,p,q,n,pairs,pr;
     if(t===0||t===1){                            /* （100∓●）×● */
       a=(t===0)?ri(1,5):ri(1,8); b=ri(2,9); n=(t===0)?100-a:100+a;
@@ -1845,7 +1894,8 @@
         ]};
     }
     pairs=[[25,4],[4,25],[50,2],[2,50],[20,5],[5,20]];
-    pr=pairs[ri(0,pairs.length-1)]; p=pr[0]; q=pr[1]; a=ri(11,49);
+    pr=pairs[ri(0,pairs.length-1)];
+    if(mode==='k2') pr=(ri(0,2)<2)?pairs[ri(0,1)]:pairs[ri(2,5)];   /* 3回に 2回は 25と 4 */ p=pr[0]; q=pr[1]; a=ri(11,49);
     if(t===2){                                   /* ● ×（●×●） */
       return {t:2,a:a,p:p,q:q,ans:a*100,head:a+'×'+p+'×'+q,
         hint:p+'×'+q+'＝100 を 先に つくろう。',
@@ -1888,6 +1938,7 @@
 
   function KPanel(){
     var self=this;
+    this.mode='k5';
     var el=document.createElement('section');
     el.className='panel'; el.setAttribute('data-tab','kufuu');
     el.innerHTML=
@@ -1945,10 +1996,11 @@
     var self=this;
     (this.timers||[]).forEach(clearTimeout); this.timers=[];
     CH.newProblem();
-    this.prob=prob||kufuuGen();
+    this.prob=prob||kufuuGen(document.body.classList.contains('testing')?'k3':this.mode);   /* テストの練習では ランダム */
     this.blanks=[]; this.bi=0; this.buf=''; this.hstage={}; this.mulEl=null;
     this.seg={}; this.hEl={}; this.distEl=null; this.ovlKind=null; this.markUntil=-1; this.hissan=null;
     this.sheet.innerHTML='';
+    this.sheet.style.paddingTop=(this.prob.t===6)?'1.4em':'';   /* （30－4）×7 型：上に 矢印の 場所を あける */
     this.prob.lines.forEach(function(ln){
       var row=document.createElement('div'); row.className='kline';
       var eq=document.createElement('span'); eq.className='keq';
@@ -2030,7 +2082,7 @@
       if(this.bi>(this.markUntil===undefined?-1:this.markUntil)) this.clearMark();
       if(this.bi>=this.blanks.length){
         this.done=true; this.keypad.classList.add('off');
-        this.say('せいかい！　'+this.prob.head+' ＝ '+this.prob.ans,'good',true);
+        this.say('せいかい！　'+(this.prob.okMsg||(this.prob.head+' ＝ '+this.prob.ans)),'good',true);
         this.stamp();
         pinponPlay();
         CH.done();
@@ -2106,14 +2158,16 @@
   };
   /* （100－●）×● の ×● が どちらにも かかる ことを 矢印で 見せる */
   KPanel.prototype.drawArrows=function(){
-    if(!this.mulEl||this.blanks.length<2) return;
+    var g=this.seg, six=(g.X0&&g.X1&&g.XM);      /* （30－4）×7 型 */
+    if(!six&&(!this.mulEl||this.blanks.length<2)) return;
     var sv=this.newLayer(), NS=SVGNS;
-    var m=this.mulEl, ex=m.offsetLeft+m.offsetWidth/2, ey=m.offsetTop-3;
+    var m=six?(g.XM.querySelector('.tk.op')||g.XM):this.mulEl;
+    var ex=m.offsetLeft+m.offsetWidth/2, ey=m.offsetTop-3;
     var self=this;
     [0,1].forEach(function(i){
-      var b=self.blanks[i].el;
+      var b=six?(i?g.X1:g.X0):self.blanks[i].el;
       var sx=b.offsetLeft+b.offsetWidth*(i?0.5:0.75), sy=b.offsetTop-2;
-      var lift=Math.max(26,(ex-sx)*0.42)+(i?0:14);
+      var lift=six?(Math.max(14,(ex-sx)*0.22)+(i?0:8)):(Math.max(26,(ex-sx)*0.42)+(i?0:14));
       var cx=(sx+ex)/2, cy=Math.min(sy,ey)-lift;
       var p1=document.createElementNS(NS,'path');
       p1.setAttribute('d','M'+sx+','+sy+' Q'+cx+','+cy+' '+ex+','+ey);
@@ -2139,6 +2193,8 @@
     if(P.t===0){x=100*P.b;y=P.a*P.b;op='－';}
     else if(P.t===1){x=100*P.b;y=P.a*P.b;op='＋';}
     else if(P.t===4){x=P.a;y=P.s;op='＋';}
+    else if(P.t===5){x=P.b;y=P.a;op='×';}
+    else if(P.t===6){x=P.n*P.b;y=P.a*P.b;op='－';}
     else return false;
     this.clearMark();
     var d=document.createElement('div');
@@ -2238,8 +2294,9 @@
   /* =========================================================
      かけ算のせいしつタブ ― □に あてはまる数
      ========================================================= */
+  var seiTurn=0;                      /* かけ算のせいしつ：1 … いま 10倍（はじめは 10倍） */
   function seiGen(){
-    var W=[0,0,1,2,2,3,3,4,4,5,5,6,6,7,7], t=W[ri(0,W.length-1)];
+    seiTurn=1-seiTurn; var t=seiTurn?6:7;   /* 10倍（t=6）と 100倍（t=7）を 交互に */
     var a,b,c,p;
     if(t===0||t===1){                           /* ■×●＝●×■ ／ ■＋●＝●＋■ */
       var op=(t===0)?'×':'＋';
@@ -2278,7 +2335,7 @@
     return {t:t,both:both,bai:bai,
       rule:both?'かけられる数と かける数が それぞれ 10倍 → 積は 100倍'
                :'かける数が 10倍 → 積も 10倍',
-      tip:both?'5と 3の 両方が 10倍。答えは 何倍に なるかな？'
+      tip:both?a+'と '+b+'の 両方が 10倍。答えは 何倍に なるかな？'
               :'かける数だけ 10倍。答えも 同じだけ 大きく なるよ。',
       head:a2+'×'+b2+'＝'+(p*bai),
       grid:{
@@ -2797,8 +2854,10 @@
   var R_NOTE=['ノート','画用紙','ふでばこ','水とう'];
 
   function ritsuGen(){
-    var W=[0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7];
-    var t=W[ri(0,W.length-1)];
+    /* おつり（0）・組にして（1）・●－●×●（6）・その他（2,3,4,5,7）を 同じ 割合で */
+    var W=[0,1,6,[2,3,4,5,7]];
+    var t=W[ri(0,3)];
+    if(typeof t!=='number') t=t[ri(0,t.length-1)];
     var a,b,c,d,q,ok,g,gs,pair,nm;
 
     if(t===0){                    /* ● －（● ＋ ●）  おつり */
@@ -2825,9 +2884,10 @@
       return {t:t,ok:ok,ans:(a+b)*c,unit:'円',
         hint:'1人分の 代金を まとめて 考えよう。まとめた ぶんを （　）で かこもう。',
         tip:'1人分の 代金を、（　）で かこんで 考えよう。',
-        text:[{s:'1人に、'},
-              {s:a+'円の '+pair[0]+'と '+b+'円の '+pair[1],hi:1},
-              {s:'を くばります。'},
+        text:[{s:a+'円の '+pair[0]+'と '+b+'円の '+pair[1],hi:1},
+              {s:'を 組にして、'},
+              {s:'1人に 1組ずつ',nw:1},
+              {s:' くばります。'},
               {s:c+'人分では、代金は ぜんぶで いくらですか。',br:1}]};
     }
     if(t===2){                    /* （● － ●）× ●  ねびき */
@@ -2866,7 +2926,7 @@
     }
     if(t===5){                    /* ● ＋ ● × ●  （　）は いらない */
       pair=R_SHOP[ri(0,R_SHOP.length-1)];
-      a=10*ri(5,15); b=10*ri(2,9); c=ri(2,9);
+      a=10*ri(5,15); do{ b=10*ri(2,9); }while(b===a); c=ri(2,9);   /* 同じ 数は 出さない */
       ok=[];
       mulOK(b,c).forEach(function(m){ok.push(a+'+'+m);ok.push(m+'+'+a);});
       return {t:t,ok:ok,ans:a+b*c,unit:'円',
@@ -2893,7 +2953,9 @@
     }
     /* t===7  ● × ● ＋ ● × ●  （　）は いらない */
     pair=R_SHOP[ri(0,R_SHOP.length-1)];
-    a=10*ri(3,9); b=ri(2,6); c=10*ri(3,9); d=ri(2,6);
+    a=10*ri(3,9); b=ri(2,6);
+    do{ c=10*ri(3,9); }while(c===a);   /* 同じ 数は 出さない（（　）を つかう 問題と まちがえない ように）*/
+    do{ d=ri(2,6); }while(d===b);
     ok=[];
     mulOK(a,b).forEach(function(L){
       mulOK(c,d).forEach(function(R){ ok.push(L+'+'+R); ok.push(R+'+'+L); });
@@ -2988,11 +3050,13 @@
     CH.newProblem();
     this.prob=prob||ritsuGen();
     this.exp=''; this.buf=''; this.stage='shiki'; this.done=false; this.hinted=false;
+    this.clearKHint();
 
     var html='';
     this.prob.text.forEach(function(p){
       var t=String(p.s).replace(/(\d+)/g,'<b>$1</b>');
       if(p.br) html+='<br>';
+      if(p.nw) t='<span style="white-space:nowrap">'+t+'</span>';   /* とちゅうで 行を かえない */
       html+= p.hi ? '<span class="hi">'+t+'</span>' : t;
     });
     this.qEl.innerHTML=html;
@@ -3055,6 +3119,7 @@
     if(this.stage==='shiki'){
       var c=document.createElement('span'); c.className='caret'; e.appendChild(c);
     }
+    if(this.kh) this.markUl(this.kh.g);   /* ヒントの 赤い線は 答えを 打っても のこす */
     this.keyEl.rp.classList.toggle('want',this.stage==='shiki'&&this.depth()>0);
 
     this.boxEl.innerHTML='';
@@ -3184,15 +3249,96 @@
     }
     var at=tokPos(this.exp), k=nextOp(at);
     if(k>0&&at[k-1]&&at[k+1]){
-      var a=at[k-1].a, b=at[k+1].b, sp=this.expEl.querySelectorAll('.rch');
-      for(var j=0;j<sp.length;j++){
-        var idx=parseInt(sp[j].getAttribute('data-i'),10);
-        sp[j].classList.toggle('ul',idx>=a&&idx<=b);
-      }
+      if(!this.showKHint()) this.markUl([{a:at[k-1].a,b:at[k+1].b}]);
       this.say('赤い 線の ところから 先に 計算するよ。','good');
     }else{
       this.say('ひっ算で 計算して みよう。','good');
     }
+  };
+
+  /* こたえの ヒント：先に 計算する ところの 下に その答え、右に のこりの ひっ算 */
+  RPanel.prototype.markUl=function(g){            /* g … [{a,b}, …] の 文字の はんい */
+    var sp=this.expEl.querySelectorAll('.rch');
+    for(var j=0;j<sp.length;j++){
+      var idx=parseInt(sp[j].getAttribute('data-i'),10), on=false;
+      for(var n=0;n<g.length;n++) if(idx>=g[n].a&&idx<=g[n].b) on=true;
+      sp[j].classList.toggle('ul',on);
+    }
+  };
+  RPanel.prototype.clearKHint=function(){
+    this.kh=null;
+    (this.valEls||[]).forEach(function(e){ e.remove(); }); this.valEls=[];
+    if(this.rhEl){ this.rhEl.remove(); this.rhEl=null; }
+  };
+  RPanel.prototype.showKHint=function(){
+    /* さいごの 1回の 計算の 前までを 先に 計算する（例 80×5＋80×3 → 80×5 と 80×3）
+       g … 先に 計算する かたまり（文字の はんいと 答え）、c … のこりの 計算 */
+    var at=tokPos(this.exp), g=[], n=0, k, j, x, y, v, cell;
+    while(ops(at).length>1){
+      if(n++>10) return false;
+      k=nextOp(at);
+      x=at[k-1]; y=at[k+1];
+      if(k<1||!x||!y||x.t!=='n'||y.t!=='n') return false;
+      v=calc(x.v,at[k].v,y.v);
+      cell={t:'n',v:v,a:x.a,b:y.b};
+      g=g.filter(function(q){ return q!==x.grp&&q!==y.grp; });   /* 前の かたまりを ふくむ ときは 1つに まとめる */
+      cell.grp={a:x.a,b:y.b,v:v}; g.push(cell.grp);
+      at.splice(k-1,3,cell);
+      for(j=0;j<at.length;j++){
+        if(at[j].t==='l'&&at[j+1]&&at[j+1].t==='n'&&at[j+2]&&at[j+2].t==='r'){ at.splice(j,3,at[j+1]); j=-1; }
+      }
+    }
+    k=nextOp(at);
+    if(!g.length||k<1||!at[k-1]||!at[k+1]||at[k-1].t!=='n'||at[k+1].t!=='n') return false;
+    this.clearKHint();
+    g.sort(function(p,q){ return p.a-q.a; });
+    this.kh={g:g,c:{a:at[k-1].v,op:at[k].v,b:at[k+1].v}};
+    this.markUl(g);
+    var self=this;
+    g.forEach(function(q){
+      var e=document.createElement('span'); e.className='rval';
+      e.textContent=String(q.v);
+      self.expEl.parentNode.appendChild(e); self.valEls.push(e);
+    });
+    this.rhEl=document.createElement('div'); this.rhEl.className='rhissan';
+    this.paper.appendChild(this.rhEl);
+    this.placeKHint();
+    return true;
+  };
+  RPanel.prototype.placeKHint=function(){
+    if(!this.kh) return;
+    var line=this.expEl.parentNode, lr=line.getBoundingClientRect();
+    var sp=this.expEl.querySelectorAll('.rch'), xr=-1e9, j, r, n, G=this.kh.g;
+    var x1=G.map(function(){return 1e9;}), x2=G.map(function(){return -1e9;});
+    for(j=0;j<sp.length;j++){
+      r=sp[j].getBoundingClientRect(); xr=Math.max(xr,r.right);
+      var idx=parseInt(sp[j].getAttribute('data-i'),10);
+      for(n=0;n<G.length;n++) if(idx>=G[n].a&&idx<=G[n].b){
+        x1[n]=Math.min(x1[n],r.left); x2[n]=Math.max(x2[n],r.right);
+      }
+    }
+    for(n=0;n<G.length;n++) if(x2[n]>=x1[n]) this.valEls[n].style.left=((x1[n]+x2[n])/2-lr.left)+'px';
+    /* ひっ算：しきと こたえの 右の あいている ところ */
+    var pr=this.paper.getBoundingClientRect(), kr=this.kotaeLine.getBoundingClientRect();
+    xr=Math.max(xr,this.unitEl.getBoundingClientRect().right);
+    var fs=parseFloat(this.sheet.style.fontSize)||20;
+    var room=pr.right-14-(xr+fs*1.2), u=fs*1.6, html;
+    for(j=0;j<12;j++){
+      html=hissanSVG(this.kh.c,u);
+      this.rhEl.innerHTML=html;
+      if(this.kh.c.op==='÷'){           /* わり算：わる数・わられる数と ）だけ のこす */
+        var sv=this.rhEl.querySelector('svg'), ls=sv.querySelectorAll('line');
+        for(var m=0;m<ls.length-1;m++) ls[m].remove();
+        var vb=sv.getAttribute('viewBox').split(' ');
+        vb[3]=String(u*2.2); sv.setAttribute('viewBox',vb.join(' ')); sv.setAttribute('height',u*2.2);
+      }
+      if(this.rhEl.offsetWidth<=room||u<12) break;
+      u*=0.88;
+    }
+    var top=(lr.top+kr.bottom)/2-this.rhEl.offsetHeight/2-pr.top;
+    top=Math.max(8,Math.min(top,this.paper.clientHeight-this.rhEl.offsetHeight-8));
+    this.rhEl.style.left=(pr.width-14-this.rhEl.offsetWidth)+'px';
+    this.rhEl.style.top=top+'px';
   };
 
   RPanel.prototype.stamp=function(){
@@ -3218,6 +3364,7 @@
     while(g++<26&&size>9&&(this.inner.offsetHeight>H||this.inner.scrollWidth>W)){
       size*=0.955; this.sheet.style.fontSize=size+'px';
     }
+    this.placeKHint();
   };
 
   /* =========================================================
@@ -3655,6 +3802,29 @@
       tabsEl.appendChild(b);tabBtns[t.key]=b;order.push(t.key);
     });
 
+  /* 「計算のくふう」タブの 中の 小タブ（k1〜k3）。問題の 出し方だけ かえる */
+  var KUFUU_SUB=[{mode:'k5',label:'4×24＝24×□'},{mode:'k4',label:'64＋56＋4＝64＋（56＋□）'},
+    {mode:'k6',label:'（30－4）×7＝30×7－4×□'},{mode:'k1',label:'98×6'},
+    {mode:'k2',label:'17×25×4'},{mode:'k3',label:'ランダム'}];
+  var kufuuSubEl=document.createElement('nav');
+  kufuuSubEl.className='subtabs';
+  subtabsEl.parentNode.insertBefore(kufuuSubEl,subtabsEl.nextSibling);
+  var kufuuSubBtns={};
+  KUFUU_SUB.forEach(function(t){
+    var b=document.createElement('button');
+    b.className='subtab'+(t.mode==='k3'?' rnd':'');b.textContent=t.label;
+    b.addEventListener('click',function(){
+      kp.mode=t.mode; markKufuuSub();
+      show('kufuu');
+      kp.reset();                       /* 小タブを おすたびに 新しい 問題を 出す */
+    });
+    kufuuSubEl.appendChild(b);kufuuSubBtns[t.mode]=b;
+  });
+  function markKufuuSub(){
+    KUFUU_SUB.forEach(function(t){ kufuuSubBtns[t.mode].classList.toggle('on',t.mode===kp.mode); });
+  }
+  markKufuuSub();
+
   var current=null;
   function show(key){
     current=key;
@@ -3663,6 +3833,7 @@
     if(inKimari) kimariLast=key;
     kimariBtn.classList.toggle('on',inKimari);
     subtabsEl.classList.toggle('show',inKimari);
+    kufuuSubEl.classList.toggle('show',key==='kufuu');
     order.forEach(function(k){
       tabBtns[k].classList.toggle('on',k===key);
       var el=document.querySelector('.panel[data-tab="'+k+'"]');
