@@ -2858,6 +2858,24 @@
     var W=[0,1,6,[2,3,4,5,7]];
     var t=W[ri(0,3)];
     if(typeof t!=='number') t=t[ri(0,t.length-1)];
+    /* 問題文に 同じ 数が 2回 出ない ように、同じ 形で 作りなおす（「1こ」「1人」の 1は のぞく）
+       例 70円の パンと 70円の ジュース → 70×2 とも 書けて しまう */
+    var p,n=0;
+    do{ p=ritsuMake(t); }while(n++<100&&ritsuDup(p));
+    return p;
+  }
+  function ritsuDup(p){
+    var seen={},dup=false;
+    p.text.forEach(function(x){
+      (String(x.s).match(/\d+/g)||[]).forEach(function(v){
+        if(v==='1') return;
+        if(seen[v]) dup=true;
+        seen[v]=1;
+      });
+    });
+    return dup;
+  }
+  function ritsuMake(t){
     var a,b,c,d,q,ok,g,gs,pair,nm;
 
     if(t===0){                    /* ● －（● ＋ ●）  おつり */
