@@ -2858,11 +2858,17 @@
   var R_CAKE=['ケーキ','プリン','ドーナツ','おにぎり'];
   var R_NOTE=['ノート','画用紙','ふでばこ','水とう'];
 
+  var ritsuLastT=-1;                  /* 前に 出した 立式の 形 */
   function ritsuGen(){
     /* おつり（0）・組にして（1）・●－●×●（6）・その他（2,3,4,5,7）を 同じ 割合で */
     var W=[0,1,6,[2,3,4,5,7]];
-    var t=W[ri(0,3)];
-    if(typeof t!=='number') t=t[ri(0,t.length-1)];
+    var t,m=0;
+    do{
+      t=W[ri(0,3)];
+      if(typeof t!=='number') t=t[ri(0,t.length-1)];
+      /* おつりの 問題（0 と 6）は 続けて 出さない */
+    }while(m++<50&&(t===0||t===6)&&(ritsuLastT===0||ritsuLastT===6));
+    ritsuLastT=t;
     /* 問題文に 同じ 数が 2回 出ない ように、同じ 形で 作りなおす（「1こ」「1人」の 1は のぞく）
        例 70円の パンと 70円の ジュース → 70×2 とも 書けて しまう */
     var p,n=0;
