@@ -343,6 +343,11 @@
   .rq b{font-size:1.3em;color:var(--navy);font-weight:700;padding:0 .05em;}
   .rq .hi{padding-bottom:.08em;}
   .rq .hi.on{border-bottom:.16em solid var(--red);}
+  /* ヒント：「と」の下に ＋、「組」の下に （　） を 赤で */
+  .rq .rmk{position:relative;}
+  .rq .rmkv{position:absolute;left:50%;top:calc(100% + .3em);transform:translateX(-50%);
+    font-size:.9em;line-height:1;color:var(--red);font-weight:700;white-space:nowrap;visibility:hidden;}
+  .rq .rmk.on .rmkv{visibility:visible;}
   .rline{display:flex;align-items:baseline;gap:.45em;white-space:nowrap;
     font-size:1.85em;line-height:1.3;color:var(--pencil);}
   .rline.off{opacity:.3;}
@@ -2888,7 +2893,7 @@
         hint:'買った ものの 代金は、あわせて いくらかな。あわせた ぶんを （　）で かこもう。',
         tip:'あわせた 代金を、（　）で かこんで 考えよう。',
         text:[{s:a+'円を 出して、'},
-              {s:b+'円の '+pair[0]+'と '+c+'円の '+pair[1],hi:1},
+              {s:b+'円の '+pair[0]+'と '+c+'円の '+pair[1],hi:1,mk:['と','＋']},
               {s:'を 買いました。'},
               {s:'おつりは いくらですか。',br:1}]};
     }
@@ -2902,8 +2907,8 @@
       return {t:t,ok:ok,ans:(a+b)*c,unit:'円',
         hint:'1人分の 代金を まとめて 考えよう。まとめた ぶんを （　）で かこもう。',
         tip:'1人分の 代金を、（　）で かこんで 考えよう。',
-        text:[{s:a+'円の '+pair[0]+'と '+b+'円の '+pair[1],hi:1},
-              {s:'を 組にして、'},
+        text:[{s:a+'円の '+pair[0]+'と '+b+'円の '+pair[1],hi:1,mk:['と','＋']},
+              {s:'を 組にして、',mk:['組','（　）']},
               {s:'1人に 1組ずつ',nw:1},
               {s:' くばります。'},
               {s:c+'人分では、代金は ぜんぶで いくらですか。',br:1}]};
@@ -2950,7 +2955,7 @@
       return {t:t,ok:ok,ans:a+b*c,unit:'円',
         hint:pair[1]+'の 代金は かけ算だね。かけ算は 先に 計算するので、（　）は いらないよ。',
         tip:'かけ算の ところは、（　）が なくても 先に 計算するよ。',
-        text:[{s:a+'円の '+pair[0]+'を 1こと、'},
+        text:[{s:a+'円の '+pair[0]+'を 1こと、',mk:['と','＋']},
               {s:'1こ '+b+'円の '+pair[1]+'を '+c+'こ',hi:1},
               {s:' 買います。'},
               {s:'代金は ぜんぶで いくらですか。',br:1}]};
@@ -3073,6 +3078,7 @@
     var html='';
     this.prob.text.forEach(function(p){
       var t=String(p.s).replace(/(\d+)/g,'<b>$1</b>');
+      if(p.mk) t=t.replace(p.mk[0],'<span class="rmk">'+p.mk[0]+'<span class="rmkv">'+p.mk[1]+'</span></span>');   /* ヒントで 下に 赤い 記号 */
       if(p.br) html+='<br>';
       if(p.nw) t='<span style="white-space:nowrap">'+t+'</span>';   /* とちゅうで 行を かえない */
       html+= p.hi ? '<span class="hi">'+t+'</span>' : t;
@@ -3260,7 +3266,7 @@
   RPanel.prototype.showHint=function(){
     if(this.done) return;
     if(this.stage==='shiki'){
-      var l=this.qEl.querySelectorAll('.hi'),i;
+      var l=this.qEl.querySelectorAll('.hi,.rmk'),i;
       for(i=0;i<l.length;i++) l[i].classList.add('on');
       this.say(this.prob.hint,'good');
       return;
